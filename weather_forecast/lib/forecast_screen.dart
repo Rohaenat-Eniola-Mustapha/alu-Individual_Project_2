@@ -1,53 +1,28 @@
 import 'package:flutter/material.dart';
-import 'weather_service.dart';
+import 'package:provider/provider.dart';
+import 'weather_provider.dart';
 
-class ForecastScreen extends StatefulWidget {
-  final String city;
-  const ForecastScreen({super.key, required this.city});
-
-  @override
-  _ForecastScreenState createState() => _ForecastScreenState();
-}
-
-class _ForecastScreenState extends State<ForecastScreen> {
-  Map<String, dynamic>? _forecastData;
-
-  void _fetchForecast() async {
-    try {
-      var data = await WeatherService().getForecast(widget.city);
-      setState(() {
-        _forecastData = data;
-      });
-    } catch (e) {
-      print("Error: $e");
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchForecast();
-  }
+class ForecastScreen extends StatelessWidget {
+  const ForecastScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final weatherProvider = Provider.of<WeatherProvider>(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('7-Day Forecast')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _forecastData == null
-            ? const Center(child: CircularProgressIndicator())
-            : ListView.builder(
-                itemCount: _forecastData!['list'].length,
-                itemBuilder: (context, index) {
-                  var day = _forecastData!['list'][index];
-                  return ListTile(
-                    title: Text('${day['main']['temp']}°C'),
-                    subtitle: Text(day['weather'][0]['description']),
-                  );
-                },
-              ),
-      ),
+      appBar: AppBar(title: const Text('5-Day Forecast')),
+      body: weatherProvider.forecast != null
+          ? ListView.builder(
+              itemCount: weatherProvider.forecast!.length,
+              itemBuilder: (context, index) {
+                final dayForecast = weatherProvider.forecast![index];
+                return ListTile(
+                  title: Text('${dayForecast['dt_txt']}'),
+                  subtitle: Text('Temp: ${dayForecast['main']['temp']}°C'),
+                );
+              },
+            )
+          : const Center(child: Text('No forecast data available')),
     );
   }
 }
